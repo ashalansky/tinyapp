@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/ashalansky/tinyapp/issues"
   },
-  "homepage": "https://github.com/ashalansky/tinyapp#readme"
+  "homepage": "https://github.com/ashalansky/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
