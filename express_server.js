@@ -14,12 +14,15 @@ let urlDatabase = {
 function generateRandomString() {
   return Math.random().toString(36).slice(2, 8);
 }
-let shortURL = (generateRandomString());
-urlDatabase[shortURL] = {shortURL: shortURL, longURL: urlDatabase[shortURL]};
+// let shortURL = (generateRandomString());
+// urlDatabase[shortURL] = {shortURL: shortURL, longURL: urlDatabase[shortURL]};
 
 app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = {longURL: req.body.longURL,};
   console.log(req.body);  // Log the POST request body to the console
-  res.redirect(`/urls/${shortURL}`);  //responds with a redirect to /urls/:shortURL
+  res.redirect(`/urls/${shortURL}`); //responds with a redirect to /urls/:shortURL
+  res.render(`/urls/${urlDatabase[shortURL]}`); 
 });
 
 app.get("/urls/new", (req, res) => {
