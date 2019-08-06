@@ -19,10 +19,10 @@ function generateRandomString() {
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = {longURL: req.body.longURL,};
-  console.log(req.body);  // Log the POST request body to the console
-  res.redirect(`/urls/${shortURL}`); //responds with a redirect to /urls/:shortURL
-  res.render(`/urls/${urlDatabase[shortURL]}`); 
+  urlDatabase[shortURL] = req.body.longURL;
+  console.log(req.body.longURL);
+  console.log(urlDatabase);  // Log the POST request body to the console
+  res.redirect(`/urls/${shortURL}`); //responds with a redirect to /urls/:shortURL 
 });
 
 app.get("/urls/new", (req, res) => {
