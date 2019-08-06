@@ -17,6 +17,10 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   let templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL]};//Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
