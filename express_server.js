@@ -24,26 +24,32 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);//responds with a redirect to /urls/:shortURL 
 });
 
+app.get("/urls", (req, res) => {
+  let templateVars = { 
+    urls: urlDatabase };
+  res.render("urls_index", templateVars);
+});// pass URL data to our template
+
 app.get("/urls/new", (req, res) => {
   res.render("urls_new"); // present form to user
 });
 
 // SHORT URLS INTO LINKS
-// redirent to long url website
+app.get("/urls/:shortURL", (req, res) => {
+  let shortURL = req.params.shortURL; 
+  let templateVars = { 
+    shortURL: shortURL, 
+    longURL: urlDatabase[req.params.shortURL]};//Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
+  res.render("urls_show", templateVars); //render information about a single URL
+});
+
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
+
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
-});
-
-app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
-});// pass URL data to our template
-
-app.get("/urls/:shortURL", (req, res) => {
-  let shortURL = req.params.shortURL; 
-  let templateVars = { shortURL: shortURL, longURL: urlDatabase[req.params.shortURL]};//Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
-  res.render("urls_show", templateVars); //render information about a single URL
 });
 
 //DELETE
@@ -53,6 +59,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 //EDIT
+// added edit redirection to change long url
+app.post("/urls/:id", (req, res) => {
+  //console.log([req.params.id]);
+  urlDatabase[req.params.id] = req.body.longURL;
+  res.redirect("/urls")
+});
+
 //LOGIN
 //LOGOUT
 //REGISTRATION
