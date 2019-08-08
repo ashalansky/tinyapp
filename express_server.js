@@ -2,8 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-var cookieParser = require('cookie-parser')
-app.use(bodyParser.urlencoded({extended: true})); // convert request body from a Buffer into string
+const cookieParser = require('cookie-parser')
+app.use(bodyParser.urlencoded({extended: true})); 
+app.use(cookieParser())// convert request body from a Buffer into string
 app.set("view engine", "ejs");
 
 
@@ -26,19 +27,19 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  console.log(req.cookies)
+  //console.log("test --->",req.cookies) testing if cookies are being passed
   let templateVars = {
     username: req.cookies["username"],
     urls: urlDatabase };
-    
+    console.log(templateVars)
   res.render("urls_index", templateVars);
 });// pass URL data to our template
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
     username: req.cookies["username"],
-  };
-  res.render("urls_new"); // present form to user
+  }
+  res.render("urls_new", templateVars); // present form to user
 });
 
 // SHORT URLS INTO LINKS
@@ -69,7 +70,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //EDIT
 // added edit redirection to change long url's
 app.post("/urls/:id", (req, res) => {
-  //console.log([req.params.id]);
   urlDatabase[req.params.id] = req.body.longURL;
   res.redirect("/urls");
 });
@@ -77,16 +77,10 @@ app.post("/urls/:id", (req, res) => {
 //LOGIN
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
-  console.log(res.cookie);
+  //console.log("TEST",res.cookies); testing if cookies are set
   res.redirect("/urls");
 }); 
 
-app.get("/login", (req, res) => {
-  let templateVars = {
-    username: req.cookies["username"],
-  };
-  res.render("/urls", templateVars);
-})
 
 //LOGOUT
 app.post("/logout", (rew, res) => {
