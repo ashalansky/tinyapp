@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
+var cookieParser = require('cookie-parser')
 app.use(bodyParser.urlencoded({extended: true})); // convert request body from a Buffer into string
 app.set("view engine", "ejs");
 
@@ -25,12 +26,18 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { 
+  console.log(req.cookies)
+  let templateVars = {
+    username: req.cookies["username"],
     urls: urlDatabase };
+    
   res.render("urls_index", templateVars);
 });// pass URL data to our template
 
 app.get("/urls/new", (req, res) => {
+  let templateVars = {
+    username: req.cookies["username"],
+  };
   res.render("urls_new"); // present form to user
 });
 
@@ -38,6 +45,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL; 
   let templateVars = { 
+    username: req.cookies["username"],
     shortURL: shortURL, 
     longURL: urlDatabase[req.params.shortURL]};//Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
   res.render("urls_show", templateVars); //render information about a single URL
@@ -59,15 +67,33 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 //EDIT
-// added edit redirection to change long url
+// added edit redirection to change long url's
 app.post("/urls/:id", (req, res) => {
   //console.log([req.params.id]);
   urlDatabase[req.params.id] = req.body.longURL;
-  res.redirect("/urls")
+  res.redirect("/urls");
 });
 
 //LOGIN
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username);
+  console.log(res.cookie);
+  res.redirect("/urls");
+}); 
+
+app.get("/login", (req, res) => {
+  let templateVars = {
+    username: req.cookies["username"],
+  };
+  res.render("/urls", templateVars);
+})
+
 //LOGOUT
+app.post("/logout", (rew, res) => {
+res.clearCookie("username");
+res.redirect('/urls');
+})
+
 //REGISTRATION
 //NEW USER REG WILL ENCRYPT PASSWORD
 
