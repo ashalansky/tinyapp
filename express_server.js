@@ -87,7 +87,7 @@ app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL; 
   let templateVars = { 
     email: users[req.cookies["userID"]].email,
-    userID: req.cookies["userID"],
+    userID: users[req.cookies["userID"]],
     shortURL: shortURL, 
     longURL: urlDatabase[req.params.shortURL]};//Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
   res.render("urls_show", templateVars); //render information about a single URL
@@ -137,16 +137,17 @@ app.post("/login", (req, res) => {
 
 app.get("/login", (req, res) => {
   let templateVars = {
-    userID: req.cookies["userID"]
+    //email: users[req.cookies["userID"]].email,
+    userID: users[req.cookies["userID"]]
   };
-  res.render("urls_login");
+  res.render("urls_login", templateVars);
 });
 
 
 //LOGOUT
 app.post("/logout", (req, res) => {
 res.clearCookie("userID");
-res.redirect("/urls");
+res.redirect("/login");
 });
 
 //REGISTRATION
