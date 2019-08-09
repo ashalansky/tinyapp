@@ -66,8 +66,8 @@ app.post("/urls", (req, res) => {
 app.get("/urls", (req, res) => {
   //console.log("test --->",req.cookies) testing if cookies are being passed
   let templateVars = {
-  // add newUserID ////// --------->>>>>
-    email: users[email],
+  // define email ////// --------->>>>>
+    email: "poop@toilet.com",
     userID: req.cookies["userID"],
     urls: urlDatabase };
   res.render("urls_index", templateVars);
@@ -122,7 +122,7 @@ app.post("/login", (req, res) => {
   if (userID) {
   let password = (searchPassword(req.body.password, users))
     if (password === true) {
-      res.cookie("userID", newUserID);
+      res.cookie("userID", userID);
       res.redirect("/urls");
     } else {
       console.log("Password is incorrect!");
