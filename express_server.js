@@ -9,10 +9,9 @@ app.set("view engine", "ejs");
 
 // EMAIL LOOKUP
 const searchEmail = function(email, users) {
-  console.log(users);
   for (let key in users) {
-    if (users[key].email === email) {
-      return true;
+    if (users[key]["email"] === email) {
+      return key;
     }
   }
   return false;
@@ -65,17 +64,20 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls", (req, res) => {
   //console.log("test --->",req.cookies) testing if cookies are being passed
+  console.log(req.cookies)
   let templateVars = {
-  // define email ////// --------->>>>>
-    email: "poop@toilet.com",
-    userID: req.cookies["userID"],
+    email: users[req.cookies["userID"]].email,
+    userID: users[req.cookies["userID"]],
     urls: urlDatabase };
+    //console.log("EMAIL IS UNDEFINED",req.cookies["userID"]);
+    //console.log("USERID", req.cookies["userID"])
   res.render("urls_index", templateVars);
 });// pass URL data to our template
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    userID: req.cookies["userID"],
+    email: users[req.cookies["userID"]].email,
+    userID: users[req.cookies["userID"]],
   }
   res.render("urls_new", templateVars); // present form to user
 });
@@ -84,6 +86,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL; 
   let templateVars = { 
+    email: users[req.cookies["userID"]].email,
     userID: req.cookies["userID"],
     shortURL: shortURL, 
     longURL: urlDatabase[req.params.shortURL]};//Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
@@ -115,6 +118,7 @@ app.post("/urls/:id", (req, res) => {
 //LOGIN
 app.post("/login", (req, res) => {
   let userID = searchEmail(req.body.email, users);
+  //console.log("HERE ARE THE USERS", req.body.email, users); // check if assessing users database
   if (userID === false) {
     console.log("Email not found")
     res.send("Error 403: Email not found")
@@ -148,6 +152,7 @@ res.redirect("/urls");
 //REGISTRATION
 app.get("/registration", (req, res) => {
   let templateVars = {
+    email: users[req.cookies["email"]],
     userID: req.cookies["userID"]
   };
   res.render("urls_registration", templateVars);
@@ -166,7 +171,7 @@ app.post("/registration", (req, res) => {
   }
   let newUserID = generateRandomString();
   users[newUserID] = {
-    id: newUserID,
+    userId: newUserID,
     email: req.body.email,
     password: req.body.password
   };
