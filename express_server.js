@@ -10,13 +10,23 @@ app.set("view engine", "ejs");
 // EMAIL LOOKUP
 const searchEmail = function(email, users) {
   console.log(users);
-  for (let key of users) {
+  for (let key in users) {
     if (users[key].email === email) {
       return true;
     }
   }
   return false;
 };
+
+// PASSWORD LOOKUP
+const searchPassword = function(password, users) {
+  for (let key in user) {
+    if (users[key].password === password) {
+      return true;
+    }
+  }
+  return false;
+}
 
 // USER DATABASE
 const users = { 
@@ -56,14 +66,14 @@ app.post("/urls", (req, res) => {
 app.get("/urls", (req, res) => {
   //console.log("test --->",req.cookies) testing if cookies are being passed
   let templateVars = {
-    username: req.cookies["username"],
+    userID: req.cookies["userID"],
     urls: urlDatabase };
   res.render("urls_index", templateVars);
 });// pass URL data to our template
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"],
+    userID: req.cookies["userID"],
   }
   res.render("urls_new", templateVars); // present form to user
 });
@@ -72,7 +82,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL; 
   let templateVars = { 
-    username: req.cookies["username"],
+    userID: req.cookies["userID"],
     shortURL: shortURL, 
     longURL: urlDatabase[req.params.shortURL]};//Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
   res.render("urls_show", templateVars); //render information about a single URL
@@ -102,16 +112,28 @@ app.post("/urls/:id", (req, res) => {
 
 //LOGIN
 app.post("/login", (req, res) => {
-  res.cookie("userID", newUserID);
-  console.log("TEST",res.cookies);
-  res.redirect("/urls");
+  let userID = searchEmail(req.body.email, users);
+  if (userID === false) {
+    console.log("Email not found")
+    res.send("Error 403: Email not found")
+  }
+  if (userID) {
+  let password = searchPassword((req.body.password, users))
+    if (password === true) {
+      res.cookie("userID", newUserID);
+      res.redirect("/urls");
+    } else {
+      console.log("Password is incorrect!");
+      res.send("Error 403: Password is incorrect")
+    }
+  }
 }); 
 
 app.get("/login", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"]
+    userID: req.cookies["userID"]
   };
-  res.render("urls_login")
+  res.render("urls_login");
 });
 
 
@@ -124,29 +146,30 @@ res.redirect("/urls");
 //REGISTRATION
 app.get("/registration", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"]
+    userID: req.cookies["userID"]
   };
   res.render("urls_registration", templateVars);
 });
 
 app.post("/registration", (req, res) => {
+  let newUserID = generateRandomString();
+  users[newUserID] = {
+    id: newUserID,
+    email: req.body.email,
+    password: req.body.password
+  };
   if (req.body.email === "" || req.body.password === "") {
     res.send("Error 400");
     console.log("email missing")
-  } else if (searchEmail(req.body.email, users)) {
+  } else { 
+    (searchEmail(req.body.email, users)); {
     res.send("Error 400");
-    console.log("email exists")
-  } else {
-    let newUserID = generateRandomString();
-      users[newUserID] = {
-        id: newUserID,
-        email: req.body.email,
-        password: req.body.password
-      };
-  }; 
-  console.log(users[newUserID])
+    console.log("email exists");
+  };
   res.cookie("userID", newUserID);
   res.redirect("/urls");
+}; 
+  //res.redirect("/urls");
 });
 //NEW USER REG WILL ENCRYPT PASSWORD
 

@@ -15,10 +15,10 @@
 </div>
 </nav>
     <div>
-      <% if (username) { %>
+      <% if (userID) { %>
         <form action="/logout" method="POST">
-          <label for="username">Logged In as: <%= username %>!</label>
-          <input type="text" id="username" >
+          <label for="userID">Logged In as: <%= email %>!</label>
+          <input type="text" id="userID" >
           <button type="submit" class="btn btn-dark">Logout</button>
         </form>
       <% } else { %>
