@@ -20,7 +20,7 @@ const searchEmail = function(email, users) {
 
 // PASSWORD LOOKUP
 const searchPassword = function(password, users) {
-  for (let key in user) {
+  for (let key in users) {
     if (users[key].password === password) {
       return true;
     }
@@ -31,12 +31,12 @@ const searchPassword = function(password, users) {
 // USER DATABASE
 const users = { 
   "userRandomID": {
-    id: "userRandomID", 
+    userID: "userRandomID", 
     email: "user@example.com", 
     password: "purple-monkey-dinosaur"
   },
  "user2RandomID": {
-    id: "user2RandomID", 
+    userID: "user2RandomID", 
     email: "user2@example.com", 
     password: "dishwasher-funk"
   }
@@ -66,6 +66,8 @@ app.post("/urls", (req, res) => {
 app.get("/urls", (req, res) => {
   //console.log("test --->",req.cookies) testing if cookies are being passed
   let templateVars = {
+  // add newUserID ////// --------->>>>>
+    email: users[email],
     userID: req.cookies["userID"],
     urls: urlDatabase };
   res.render("urls_index", templateVars);
@@ -118,7 +120,7 @@ app.post("/login", (req, res) => {
     res.send("Error 403: Email not found")
   }
   if (userID) {
-  let password = searchPassword((req.body.password, users))
+  let password = (searchPassword(req.body.password, users))
     if (password === true) {
       res.cookie("userID", newUserID);
       res.redirect("/urls");
@@ -152,25 +154,27 @@ app.get("/registration", (req, res) => {
 });
 
 app.post("/registration", (req, res) => {
+  if (req.body.email === "" || req.body.password === "") {
+    console.log("email missing")
+      res.send("Error 400");
+      return;
+  } 
+  if (searchEmail(req.body.email, users)){
+      console.log("email exists");
+      res.send("Error 400");   
+      return;
+  }
   let newUserID = generateRandomString();
   users[newUserID] = {
     id: newUserID,
     email: req.body.email,
     password: req.body.password
   };
-  if (req.body.email === "" || req.body.password === "") {
-    res.send("Error 400");
-    console.log("email missing")
-  } else { 
-    (searchEmail(req.body.email, users)); {
-    res.send("Error 400");
-    console.log("email exists");
-  };
+  console.log(users[newUserID]);
   res.cookie("userID", newUserID);
   res.redirect("/urls");
-}; 
-  //res.redirect("/urls");
 });
+
 //NEW USER REG WILL ENCRYPT PASSWORD
 
 app.get("/", (req, res) => {
