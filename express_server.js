@@ -7,15 +7,39 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser())// convert request body from a Buffer into string
 app.set("view engine", "ejs");
 
-
+// USER DATABASE
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+// URL DATABASE
 let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
+// RANDOM GENERATOR
 function generateRandomString() {
   return Math.random().toString(36).slice(2, 8);
 }
+
+// EMAIL LOOKUP
+const searchEmail = function(email, database) {
+  for (let key of database) {
+    if (database[key].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
 
 //CREATE NEW
 // integrate long url inside of short url
@@ -83,12 +107,38 @@ app.post("/login", (req, res) => {
 
 
 //LOGOUT
-app.post("/logout", (rew, res) => {
+app.post("/logout", (req, res) => {
 res.clearCookie("username");
-res.redirect('/urls');
+res.redirect("/urls");
 })
 
 //REGISTRATION
+app.get("/registration", (req, res) => {
+  let templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("urls_registration", templateVars);
+})
+
+app.post("/registration", (req, res) => {
+  if (req.body.email === "" || req.body.password == "") {
+    res.send("Error 400");
+    console.log("email missing")
+  } else if (searchEmail(req.body.email, users)) {
+    res.send("Error 400");
+    console.log("email exists")
+  } else {
+    let newUserID = generateRandomString();
+    users[newUserID] = {
+      id: newUserID,
+      email: req.body.email,
+      password: req.body.password
+    };
+  }; 
+  console.log(users[newUserID])
+  res.cookie("userID", newUserID);
+  res.redirect("/urls");
+});
 //NEW USER REG WILL ENCRYPT PASSWORD
 
 app.get("/", (req, res) => {
