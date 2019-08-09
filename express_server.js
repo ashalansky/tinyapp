@@ -7,6 +7,17 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser())// convert request body from a Buffer into string
 app.set("view engine", "ejs");
 
+// EMAIL LOOKUP
+const searchEmail = function(email, users) {
+  console.log(users);
+  for (let key of users) {
+    if (users[key].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
+
 // USER DATABASE
 const users = { 
   "userRandomID": {
@@ -31,15 +42,7 @@ function generateRandomString() {
   return Math.random().toString(36).slice(2, 8);
 }
 
-// EMAIL LOOKUP
-const searchEmail = function(email, database) {
-  for (let key of database) {
-    if (database[key].email === email) {
-      return true;
-    }
-  }
-  return false;
-};
+
 
 //CREATE NEW
 // integrate long url inside of short url
@@ -55,7 +58,6 @@ app.get("/urls", (req, res) => {
   let templateVars = {
     username: req.cookies["username"],
     urls: urlDatabase };
-    console.log(templateVars)
   res.render("urls_index", templateVars);
 });// pass URL data to our template
 
@@ -100,17 +102,24 @@ app.post("/urls/:id", (req, res) => {
 
 //LOGIN
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  //console.log("TEST",res.cookies); testing if cookies are set
+  res.cookie("userID", newUserID);
+  console.log("TEST",res.cookies);
   res.redirect("/urls");
 }); 
+
+app.get("/login", (req, res) => {
+  let templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("urls_login")
+});
 
 
 //LOGOUT
 app.post("/logout", (req, res) => {
-res.clearCookie("username");
+res.clearCookie("userID");
 res.redirect("/urls");
-})
+});
 
 //REGISTRATION
 app.get("/registration", (req, res) => {
@@ -118,10 +127,10 @@ app.get("/registration", (req, res) => {
     username: req.cookies["username"]
   };
   res.render("urls_registration", templateVars);
-})
+});
 
 app.post("/registration", (req, res) => {
-  if (req.body.email === "" || req.body.password == "") {
+  if (req.body.email === "" || req.body.password === "") {
     res.send("Error 400");
     console.log("email missing")
   } else if (searchEmail(req.body.email, users)) {
@@ -129,11 +138,11 @@ app.post("/registration", (req, res) => {
     console.log("email exists")
   } else {
     let newUserID = generateRandomString();
-    users[newUserID] = {
-      id: newUserID,
-      email: req.body.email,
-      password: req.body.password
-    };
+      users[newUserID] = {
+        id: newUserID,
+        email: req.body.email,
+        password: req.body.password
+      };
   }; 
   console.log(users[newUserID])
   res.cookie("userID", newUserID);
