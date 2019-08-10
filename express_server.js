@@ -2,12 +2,13 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
+const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser')
 app.use(bodyParser.urlencoded({extended: true})); 
 app.use(cookieParser())// convert request body from a Buffer into string
 app.set("view engine", "ejs");
 
-// EMAIL LOOKUP
+//----------------------------------------------- EMAIL LOOKUP---------------------------------------------------//
 const searchEmail = function(email, users) {
   for (let key in users) {
     if (users[key]["email"] === email) {
@@ -17,30 +18,20 @@ const searchEmail = function(email, users) {
   return false;
 };
 
-// PASSWORD LOOKUP
-const searchPassword = function(password, users) {
-  for (let key in users) {
-    if (users[key]["password"] === password) {
-      return true;
-    }
-  }
-  return false;
-};
-
-// USER DATABASE
+//----------------------------------------------USER DATABASE---------------------------------------------------//
 const users = { 
   "aJ48lw": {
     userID: "aJ48lw", 
     email: "user@example.com", 
-    password: "purple"
+    password: bcrypt.hashSync("purple", 10)
   },
  "user2RandomID": {
     userID: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher"
+    password: bcrypt.hashSync("dishwasher", 10)
   }
 }
-// URL DATABASE
+//----------------------------------------------- URL DATABASE-----------------------------------------------------//
 let urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
@@ -53,14 +44,14 @@ let urlDatabase = {
 };
 
 
-// RANDOM GENERATOR
+//--------------------------------------------- RANDOM GENERATOR---------------------------------------------------//
 function generateRandomString() {
   return Math.random().toString(36).slice(2, 8);
 }
 
 
 
-//CREATE NEW
+//CREATE NEW ----------------------------------POST-URLS--------------------------------------------------------//
 // integrate long url inside of short url
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
@@ -96,7 +87,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars); // present form to user
 });
 
-// SHORT URLS INTO LINKS
+// ---------------------------------------------SHORT URLS INTO LINKS---------------------------------------------//
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL; 
   let templateVars = { 
@@ -116,7 +107,7 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-//DELETE
+//------------------------------------------------------DELETE--------------------------------------------------//
 app.post("/urls/:shortURL/delete", (req, res) => {
   let userID = users[req.cookies["userID"]];
     if (userID) {
@@ -128,7 +119,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     res.redirect("/login");
 });
 
-//EDIT - SHORTURL
+//---------------------------------------------------EDIT - SHORTURL---------------------------------------------//
 // added edit redirection to change long url's
 app.post("/urls/:shortURL", (req, res) => {
   let userID = users[req.cookies["userID"]];
@@ -142,7 +133,7 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 
-//LOGIN
+//------------------------------------------------------LOGIN------------------------------------------------------//
 app.post("/login", (req, res) => {
   let userID = searchEmail(req.body.email, users);
   //console.log("HERE ARE THE USERS", req.body.email, users); // check if assessing users database
@@ -151,7 +142,12 @@ app.post("/login", (req, res) => {
     res.send("Error 403: Email not found")
   }
   if (userID) {
-  let password = (searchPassword(req.body.password, users))
+    console.log("USERID",userID);
+    console.log("BODDDYY -->", req.body.password);
+    console.log("USERRRRRSS -->", users)
+  
+let password = bcrypt.compareSync(req.body.password, users[userID]["password"])
+
     if (password === true) {
       res.cookie("userID", userID);
       res.redirect("/urls");
@@ -171,13 +167,13 @@ app.get("/login", (req, res) => {
 });
 
 
-//LOGOUT
+//----------------------------------------------------LOGOUT------------------------------------------------------//
 app.post("/logout", (req, res) => {
 res.clearCookie("userID");
 res.redirect("/login");
 });
 
-//REGISTRATION
+//--------------------------------------------------REGISTRATION---------------------------------------------------//
 app.get("/registration", (req, res) => {
   let templateVars = {
     email: users[req.cookies["email"]],
@@ -201,14 +197,14 @@ app.post("/registration", (req, res) => {
   users[newUserID] = {
     userID: newUserID,
     email: req.body.email,
-    password: req.body.password
+    password: bcrypt.hashSync(req.body.password, 10)
   };
   console.log(users[newUserID]);
   res.cookie("userID", newUserID);
   res.redirect("/urls");
 });
 
-//NEW USER REG WILL ENCRYPT PASSWORD
+//---------------------------------------NEW USER REG WILL ENCRYPT PASSWORD----------------------------------------//
 
 app.get("/", (req, res) => {
   res.redirect("/urls");
