@@ -22,6 +22,7 @@
       </thead>
       <tbody>
         <% for(let url in urls) { %>
+          <% if (userID) { %>
           <% if (userID["userID"] === urls[url]["userID"]) { %>
           <tr>
             <td><%= url %></td>
@@ -37,6 +38,7 @@
               </form>
             </td>
           </tr>
+        <% } %>
         <% } %>
       <% } %>
       </tbody>
