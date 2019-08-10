@@ -21,14 +21,16 @@
         </tr>
       </thead>
       <tbody>
+        <% if (userID) { %>
+
         <% for(let url in urls) { %>
           <tr>
             <td><%= url %></td>
-            <td><%= urls[url] %></td>
+            <td><%= urls[url]["longURL"] %></td>
             <td>
               <form method="GET" action="/urls/<%= url %>">
-              <button type="submit" class="btn btn-outline-primary">Edit</button>
-            </form>
+                <button type="submit" class="btn btn-outline-primary">Edit</button>
+              </form>
             </td>
             <td>
               <form method="POST" action="/urls/<%= url %>/delete">
@@ -36,6 +38,7 @@
               </form>
             </td>
           </tr>
+        <% } %>
         <% } %>
       </tbody>
     </table>

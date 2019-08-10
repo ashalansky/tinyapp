@@ -20,12 +20,12 @@ const searchEmail = function(email, users) {
 // PASSWORD LOOKUP
 const searchPassword = function(password, users) {
   for (let key in users) {
-    if (users[key].password === password) {
+    if (users[key]["password"] === password) {
       return true;
     }
   }
   return false;
-}
+};
 
 // USER DATABASE
 const users = { 
@@ -42,9 +42,24 @@ const users = {
 }
 // URL DATABASE
 let urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "aJ48lw"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userUD: "aJ48lw" 
+  }
 };
+// URLS FOR USER - SEEING WHAT URLS ARE ATTACHED TO WHAT USER
+// const urlsForUser = function(urlDatabase, userID) {
+//   for (let item in urlDatabase) {
+//     if(item === urlDatabase[userID].userID); {
+//       return true;
+//     }
+//   }
+// }
+
 
 // RANDOM GENERATOR
 function generateRandomString() {
@@ -66,7 +81,7 @@ app.get("/urls", (req, res) => {
   //console.log("test --->",req.cookies) testing if cookies are being passed
   console.log(req.cookies)
   let templateVars = {
-    email: users[req.cookies["userID"]].email,
+    //email: users[req.cookies["userID"]].email,
     userID: users[req.cookies["userID"]],
     urls: urlDatabase };
     //console.log("EMAIL IS UNDEFINED",req.cookies["userID"]);
@@ -79,6 +94,9 @@ app.get("/urls/new", (req, res) => {
     email: users[req.cookies["userID"]].email,
     userID: users[req.cookies["userID"]],
   }
+  // if (!userID) {
+  //   res.redirect("/login");
+  // } // IF USER IN NOT LOGGED IN WHEN TRYING TO CREATE NEW, REDIRECT TO LOGIN
   res.render("urls_new", templateVars); // present form to user
 });
 
@@ -115,6 +133,7 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
+
 //LOGIN
 app.post("/login", (req, res) => {
   let userID = searchEmail(req.body.email, users);
@@ -130,7 +149,7 @@ app.post("/login", (req, res) => {
       res.redirect("/urls");
     } else {
       console.log("Password is incorrect!");
-      res.send("Error 403: Password is incorrect")
+      res.send("Error 403: Password is incorrect");
     }
   }
 }); 
