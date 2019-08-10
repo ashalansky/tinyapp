@@ -51,14 +51,6 @@ let urlDatabase = {
     userID: "aJ48lw" 
   }
 };
-// URLS FOR USER - SEEING WHAT URLS ARE ATTACHED TO WHAT USER
-// const urlsForUser = function(urlDatabase, userID) {
-//   for (let item in urlDatabase) {
-//     if(item === urlDatabase[userID].userID); {
-//       return true;
-//     }
-//   }
-// }
 
 
 // RANDOM GENERATOR
@@ -120,20 +112,32 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL]["longURL"];
   res.redirect(longURL);
 });
 
 //DELETE
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  let userID = users[req.cookies["userID"]];
+    if (userID) {
+     if (userID["userID"] === urlDatabase[req.params.shortURL]["userID"]) {
+        delete urlDatabase[req.params.shortURL];
+        res.redirect("/urls");
+      }
+    }
+    res.redirect("/login");
 });
 
 //EDIT - SHORTURL
 // added edit redirection to change long url's
-app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id]["longURL"] = req.body.longURL;
+app.post("/urls/:shortURL", (req, res) => {
+  let userID = users[req.cookies["userID"]];
+    if (userID) {
+      if (userID["userID"] === urlDatabase[req.params.shortURL]["userID"]) {
+         urlDatabase[req.params.shortURL]["longURL"] = req.body.longURL;
+        res.redirect("urls_show");
+      }
+  }
   res.redirect("/urls");
 });
 
