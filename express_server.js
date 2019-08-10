@@ -29,15 +29,15 @@ const searchPassword = function(password, users) {
 
 // USER DATABASE
 const users = { 
-  "userRandomID": {
-    userID: "userRandomID", 
+  "aJ48lw": {
+    userID: "aJ48lw", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: "purple"
   },
  "user2RandomID": {
     userID: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    password: "dishwasher"
   }
 }
 // URL DATABASE
@@ -48,7 +48,7 @@ let urlDatabase = {
   },
   "9sm5xK": {
     longURL: "http://www.google.com",
-    userUD: "aJ48lw" 
+    userID: "aJ48lw" 
   }
 };
 // URLS FOR USER - SEEING WHAT URLS ARE ATTACHED TO WHAT USER
@@ -72,8 +72,12 @@ function generateRandomString() {
 // integrate long url inside of short url
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
-  console.log(req.body);
+  urlDatabase[shortURL] = {
+    "longURL": req.body.longURL,
+    "userID": req.cookies["userID"]
+  }
+  console.log(urlDatabase[shortURL]);
+  console.log("users object", users[req.cookies["userID"]]);
   res.redirect(`/urls/${shortURL}`);//responds with a redirect to /urls/:shortURL 
 });
 
@@ -107,7 +111,7 @@ app.get("/urls/:shortURL", (req, res) => {
     email: users[req.cookies["userID"]].email,
     userID: users[req.cookies["userID"]],
     shortURL: shortURL, 
-    longURL: urlDatabase[req.params.shortURL]};//Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
+    longURL: urlDatabase[req.params.shortURL].longURL};//Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
   res.render("urls_show", templateVars); //render information about a single URL
 });
 
@@ -126,10 +130,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-//EDIT
+//EDIT - SHORTURL
 // added edit redirection to change long url's
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
+  urlDatabase[req.params.id]["longURL"] = req.body.longURL;
   res.redirect("/urls");
 });
 
@@ -191,7 +195,7 @@ app.post("/registration", (req, res) => {
   }
   let newUserID = generateRandomString();
   users[newUserID] = {
-    userId: newUserID,
+    userID: newUserID,
     email: req.body.email,
     password: req.body.password
   };
