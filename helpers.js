@@ -1,7 +1,3 @@
-
-
-
-
 //----------------------------------------------- EMAIL LOOKUP---------------------------------------------------//
 const searchEmail = function(email, users) {
   for (let key in users) {
