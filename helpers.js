@@ -1,5 +1,5 @@
 //----------------------------------------------- EMAIL LOOKUP---------------------------------------------------//
-const searchEmail = function(email, users) {
+const searchEmail = function (email, users) {
   for (let key in users) {
     if (users[key]["email"] === email) {
       return key;
@@ -9,4 +9,4 @@ const searchEmail = function(email, users) {
 };
 
 
-module.exports = { searchEmail };
+module.exports = {searchEmail};
