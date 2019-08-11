@@ -4,9 +4,7 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
-const {
-  searchEmail
-} = require("./helpers");
+const {searchEmail} = require("./helpers");
 app.use(bodyParser.urlencoded({
   extended: true
 }));
@@ -43,10 +41,8 @@ let urlDatabase = {
     userID: "aJ48lw"
   }
 };
-
-
 //--------------------------------------------- RANDOM GENERATOR---------------------------------------------------//
-const generateRandomString = function() {
+const generateRandomString = function () {
   return Math.random().toString(36).slice(2, 8);
 };
 
@@ -58,8 +54,6 @@ app.post("/urls", (req, res) => {
     "longURL": req.body.longURL,
     "userID": req.session.userID
   };
-  console.log("POOP", urlDatabase[shortURL]);
-  console.log("users object", users[req.session.userID]);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -90,7 +84,7 @@ app.get("/urls/:shortURL", (req, res) => {
     shortURL: shortURL,
     longURL: urlObject && urlObject.longURL,
   };
-  res.render("urls_show", templateVars); 
+  res.render("urls_show", templateVars);
 });
 
 app.get("/urls.json", (req, res) => {
@@ -127,7 +121,6 @@ app.post("/urls/:shortURL", (req, res) => {
     }
   }
 });
-
 
 //------------------------------------------------------LOGIN------------------------------------------------------//
 app.post("/login", (req, res) => {
@@ -193,8 +186,6 @@ app.post("/registration", (req, res) => {
     res.redirect("/urls");
   }
 });
-
-//---------------------------------------NEW USER REG WILL ENCRYPT PASSWORD----------------------------------------//
 
 app.get("/", (req, res) => {
   res.redirect("/urls");
