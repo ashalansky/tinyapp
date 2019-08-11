@@ -4,35 +4,40 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session')
-app.use(bodyParser.urlencoded({extended: true})); 
+const {
+  searchEmail
+} = require("./helpers");
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.use(cookieSession({
   name: "session",
   keys: ["Superman"],
-    // Cookie Options
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }))
 app.set("view engine", "ejs");
 
-//----------------------------------------------- EMAIL LOOKUP---------------------------------------------------//
-const searchEmail = function(email, users) {
-  for (let key in users) {
-    if (users[key]["email"] === email) {
-      return key;
-    }
-  }
-  return false;
-};
+// //----------------------------------------------- EMAIL LOOKUP---------------------------------------------------//
+// const searchEmail = function(email, users) {
+//   for (let key in users) {
+//     if (users[key]["email"] === email) {
+//       return key;
+//     }
+//   }
+//   return false;
+// };
 
 //----------------------------------------------USER DATABASE---------------------------------------------------//
-const users = { 
+const users = {
   "aJ48lw": {
-    userID: "aJ48lw", 
-    email: "user@example.com", 
+    userID: "aJ48lw",
+    email: "user@example.com",
     password: bcrypt.hashSync("purple", 10)
   },
- "user2RandomID": {
-    userID: "user2RandomID", 
-    email: "user2@example.com", 
+  "user2RandomID": {
+    userID: "user2RandomID",
+    email: "user2@example.com",
     password: bcrypt.hashSync("dishwasher", 10)
   }
 }
@@ -44,7 +49,7 @@ let urlDatabase = {
   },
   "9sm5xK": {
     longURL: "http://www.google.com",
-    userID: "aJ48lw" 
+    userID: "aJ48lw"
   }
 };
 
@@ -64,16 +69,17 @@ app.post("/urls", (req, res) => {
     "longURL": req.body.longURL,
     "userID": req.session.userID
   }
-  console.log(urlDatabase[shortURL]);
+  console.log("POOP", urlDatabase[shortURL]);
   console.log("users object", users[req.session.userID]);
-  res.redirect(`/urls/${shortURL}`);//responds with a redirect to /urls/:shortURL 
+  res.redirect(`/urls/${shortURL}`); //responds with a redirect to /urls/:shortURL 
 });
 
 app.get("/urls", (req, res) => {
   let templateVars = {
     userID: users[req.session.userID],
-    urls: urlDatabase };
-      res.render("urls_index", templateVars);
+    urls: urlDatabase
+  };
+  res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
@@ -85,13 +91,16 @@ app.get("/urls/new", (req, res) => {
 });
 
 // ---------------------------------------------SHORT URLS INTO LINKS---------------------------------------------//
+//Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
 app.get("/urls/:shortURL", (req, res) => {
-  let shortURL = req.params.shortURL; 
-  let templateVars = { 
+  let shortURL = req.params.shortURL;
+  const urlObject = urlDatabase[shortURL];
+  let templateVars = {
     email: users[req.session.userID].email,
     userID: users[req.session.userID],
-    shortURL: shortURL, 
-    longURL: urlDatabase[req.params.shortURL].longURL};//Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
+    shortURL: shortURL,
+    longURL: urlObject && urlObject.longURL,
+  };
   res.render("urls_show", templateVars); //render information about a single URL
 });
 
@@ -100,54 +109,55 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL]["longURL"];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
 //------------------------------------------------------DELETE--------------------------------------------------//
 app.post("/urls/:shortURL/delete", (req, res) => {
   let userID = users[req.session.userID];
-    if (userID) {
-     if (userID["userID"] === urlDatabase[req.params.shortURL].userID) {
-        delete urlDatabase[req.params.shortURL];
-        res.redirect("/urls");
-      }
+  if (userID) {
+    if (userID["userID"] === urlDatabase[req.params.shortURL].userID) {
+      delete urlDatabase[req.params.shortURL];
+      res.redirect("/urls");
     }
-    res.redirect("/login");
+  }
+  res.redirect("/login");
 });
 
 //---------------------------------------------------EDIT - SHORTURL---------------------------------------------//
 // added edit redirection to change long url's
 app.post("/urls/:shortURL", (req, res) => {
   let userID = users[req.session.userID];
-    if (userID) {
-      if (userID["userID"] === urlDatabase[req.params.shortURL].userID) {
-         urlDatabase[req.params.shortURL]["longURL"] = req.body.longURL;
-        res.redirect("urls_show");
-      }
+  if (userID) {
+    if (userID["userID"] === urlDatabase[req.params.shortURL].userID) {
+      urlDatabase[req.params.shortURL]["longURL"] = req.body.longURL;
+      res.redirect(`/urls/${req.params.shortURL}`);
+    } else {
+      res.redirect("/urls");
+    }
   }
-  res.redirect("/urls");
 });
 
 
 //------------------------------------------------------LOGIN------------------------------------------------------//
 app.post("/login", (req, res) => {
   let userID = searchEmail(req.body.email, users);
-    if (userID === false) {
-      console.log("Email not found")
-      res.send("Error 403: Email not found")
-    }
-    if (userID) {
-      let password = bcrypt.compareSync(req.body.password, users[userID]["password"])
-        if (password === true) {
-          req.session.userID = userID;
-          res.redirect("/urls");
-        } else {
-            console.log("Password is incorrect!");
-            res.send("Error 403: Password is incorrect");
+  if (userID === false) {
+    console.log("Email not found")
+    res.send("Error 403: Email not found")
+  }
+  if (userID) {
+    let password = bcrypt.compareSync(req.body.password, users[userID]["password"])
+    if (password === true) {
+      req.session.userID = userID;
+      res.redirect("/urls");
+    } else {
+      console.log("Password is incorrect!");
+      res.send("Error 403: Password is incorrect");
     }
   }
-}); 
+});
 
 app.get("/login", (req, res) => {
   let templateVars = {
@@ -159,8 +169,8 @@ app.get("/login", (req, res) => {
 
 //----------------------------------------------------LOGOUT------------------------------------------------------//
 app.post("/logout", (req, res) => {
-req.session.userID = null;
-res.redirect("/login");
+  req.session.userID = null;
+  res.redirect("/login");
 });
 
 //--------------------------------------------------REGISTRATION---------------------------------------------------//
@@ -178,24 +188,24 @@ app.post("/registration", (req, res) => {
 
   if (req.body.email === "" || req.body.password === "") {
     console.log("email missing")
-      res.send("Error 400");
-      return;
-  } else if (searchEmail(req.body.email, users)){
-      console.log("email exists");
-      res.send("Error 400");   
-      return;
+    res.send("Error 400");
+    return;
+  } else if (searchEmail(req.body.email, users)) {
+    console.log("email exists");
+    res.send("Error 400");
+    return;
   } else {
-      const newUserID = generateRandomString();
-      const newUserEmail = req.body.email;
-      users[newUserID] = {
-        userID: newUserID,
-        email: newUserEmail,
-        password: bcrypt.hashSync(req.body.password, 10)
-      };
-  console.log(users[newUserID]);
-  req.session.userID = newUserID;
-  res.redirect("/urls");
-  } 
+    const newUserID = generateRandomString();
+    const newUserEmail = req.body.email;
+    users[newUserID] = {
+      userID: newUserID,
+      email: newUserEmail,
+      password: bcrypt.hashSync(req.body.password, 10)
+    };
+    console.log(users[newUserID]);
+    req.session.userID = newUserID;
+    res.redirect("/urls");
+  }
 });
 
 //---------------------------------------NEW USER REG WILL ENCRYPT PASSWORD----------------------------------------//
