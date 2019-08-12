@@ -4,7 +4,8 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
-const {searchEmail} = require("./helpers");
+const {searchEmail, urlsForUser} = require("./helpers");
+
 app.use(bodyParser.urlencoded({
   extended: true
 }));
@@ -41,6 +42,7 @@ let urlDatabase = {
     userID: "aJ48lw"
   }
 };
+
 //--------------------------------------------- RANDOM GENERATOR---------------------------------------------------//
 const generateRandomString = function () {
   return Math.random().toString(36).slice(2, 8);
@@ -49,28 +51,51 @@ const generateRandomString = function () {
 //CREATE NEW ----------------------------------POST-URLS--------------------------------------------------------//
 
 app.post("/urls", (req, res) => {
+  if (!users[req.session.userID]) {
+    res.status(401).render("error_page", {
+      error: 404,
+      message: "Not Signed In",
+      userID: users[req.session.userID]
+    });
+  }
+  
   let shortURL = generateRandomString();
-  urlDatabase[shortURL] = {
-    "longURL": req.body.longURL,
-    "userID": req.session.userID
-  };
-  res.redirect(`/urls/${shortURL}`);
+    urlDatabase[shortURL] = {
+      "longURL": req.body.longURL,
+      "userID": req.session.userID
+    };
+    res.redirect(`/urls/${shortURL}`);
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = {
-    userID: users[req.session.userID],
-    urls: urlDatabase
+  if (req.session.userID) {
+    let listURL = urlsForUser(req.session.userID, urlDatabase);
+  
+    let templateVars = {
+      userID: users[req.session.userID],
+       urls: urlDatabase
   };
   res.render("urls_index", templateVars);
+} else {
+  let templateVars = {
+    error: 503,
+    message: "Access Denied. Please Login or Register to view urls",
+    userID: users[req.session.userID]
+  };
+  res.status(503).render("error_page", templateVars);
+}
+
 });
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    email: users[req.session.userID].email,
     userID: users[req.session.userID],
   };
-  res.render("urls_new", templateVars);
+  if (req.session.userID) {
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 // ---------------------------------------------SHORT URLS INTO LINKS---------------------------------------------//
@@ -79,7 +104,6 @@ app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
   const urlObject = urlDatabase[shortURL];
   let templateVars = {
-    email: users[req.session.userID].email,
     userID: users[req.session.userID],
     shortURL: shortURL,
     longURL: urlObject && urlObject.longURL,
@@ -135,9 +159,13 @@ app.post("/login", (req, res) => {
       req.session.userID = userID;
       res.redirect("/urls");
     } else {
-      console.log("Password is incorrect!");
-      res.send("Error 403: Password is incorrect");
-    }
+      let templateVars = {
+        error: 401,
+        message: "Incorrect email or password",
+        userID: users[req.session.userID]
+      };
+      res.status(503).render("error_page", templateVars);
+    } 
   }
 });
 
