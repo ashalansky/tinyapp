@@ -116,8 +116,17 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
+  if(urlDatabase[req.params.shortURL]){
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+  } else {
+    let templateVars = {
+      error: 503,
+      message: "Invalid shorturl.",
+      userID: users[req.session.userID]
+    }
+    res.render("error_page", templateVars);
+  }
 });
 
 //----------DELETE------------------------//
@@ -150,7 +159,6 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post("/login", (req, res) => {
   let userID = searchEmail(req.body.email, users);
   if (userID === false) {
-    console.log("Email not found");
     res.send("Error 403: Email not found");
   }
   if (userID) {
@@ -170,10 +178,11 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  let templateVars = {
-    userID: users[req.session.userID]
-  };
-  res.render("urls_login", templateVars);
+  if (req.session.userID) {
+    res.redirect("/urls");
+  } else {
+    res.render("urls_login");
+  }
 });
 
 
@@ -189,16 +198,18 @@ app.get("/registration", (req, res) => {
     email: users[req.session.email],
     userID: req.session.userID
   };
-  res.render("urls_registration", templateVars);
+  if (req.session.userID) {
+    res.redirect("/urls");
+  } else {
+    res.render("urls_registration", templateVars);
+  }
 });
 
 app.post("/registration", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
-    console.log("email missing");
     res.send("Error 400");
     return;
   } else if (searchEmail(req.body.email, users)) {
-    console.log("email exists");
     res.send("Error 400");
     return;
   } else {
