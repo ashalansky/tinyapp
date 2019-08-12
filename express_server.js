@@ -18,7 +18,7 @@ app.use(cookieSession({
 app.set("view engine", "ejs");
 
 
-//----------------------------------------------USER DATABASE---------------------------------------------------//
+//--------------USER DATABASE--------------//
 const users = {
   "aJ48lw": {
     userID: "aJ48lw",
@@ -31,7 +31,7 @@ const users = {
     password: bcrypt.hashSync("dishwasher", 10)
   }
 };
-//----------------------------------------------- URL DATABASE-----------------------------------------------------//
+//---------- URL DATABASE---------------//
 let urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
@@ -43,12 +43,12 @@ let urlDatabase = {
   }
 };
 
-//--------------------------------------------- RANDOM GENERATOR---------------------------------------------------//
+//-------- RANDOM GENERATOR----------------//
 const generateRandomString = function () {
   return Math.random().toString(36).slice(2, 8);
 };
 
-//CREATE NEW ----------------------------------POST-URLS--------------------------------------------------------//
+//CREATE NEW -----------POST-URLS------------//
 
 app.post("/urls", (req, res) => {
   if (!users[req.session.userID]) {
@@ -98,7 +98,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-// ---------------------------------------------SHORT URLS INTO LINKS---------------------------------------------//
+// -----------SHORT URLS INTO LINKS---------------//
 
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
@@ -120,7 +120,7 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-//------------------------------------------------------DELETE--------------------------------------------------//
+//----------DELETE------------------------//
 app.post("/urls/:shortURL/delete", (req, res) => {
   let userID = users[req.session.userID];
   if (userID) {
@@ -132,7 +132,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 });
 
-//---------------------------------------------------EDIT - SHORTURL---------------------------------------------//
+//-----------EDIT - SHORTURL------------//
 
 app.post("/urls/:shortURL", (req, res) => {
   let userID = users[req.session.userID];
@@ -146,7 +146,7 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 });
 
-//------------------------------------------------------LOGIN------------------------------------------------------//
+//------------LOGIN-------------------//
 app.post("/login", (req, res) => {
   let userID = searchEmail(req.body.email, users);
   if (userID === false) {
@@ -177,13 +177,13 @@ app.get("/login", (req, res) => {
 });
 
 
-//----------------------------------------------------LOGOUT------------------------------------------------------//
+//--------LOGOUT-------------------------//
 app.post("/logout", (req, res) => {
   req.session.userID = null;
   res.redirect("/login");
 });
 
-//--------------------------------------------------REGISTRATION---------------------------------------------------//
+//---------REGISTRATION------------------------//
 app.get("/registration", (req, res) => {
   let templateVars = {
     email: users[req.session.email],

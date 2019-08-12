@@ -1,4 +1,4 @@
-//----------------------------------------------- EMAIL LOOKUP---------------------------------------------------//
+//--------- EMAIL LOOKUP------------------//
 const urlsForUser = function(userID, database) {
   let listURL = {};
   for (let key in database) {
